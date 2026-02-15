@@ -1,5 +1,5 @@
 ---
-tags: [ethereum, MOC, index]
+tags: [ethereum, MOC, index, blockchain]
 aliases: [以太坊知識地圖, Ethereum Map of Content]
 ---
 
