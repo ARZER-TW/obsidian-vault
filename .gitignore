@@ -1,6 +1,12 @@
-# Obsidian
-.obsidian/workspace.json
-.obsidian/workspace-mobile.json
-.obsidian/plugins/obsidian-git/data.json
+# Obsidian internal
+.obsidian/
 .trash/
 .DS_Store
+
+# Ignore everything by default
+/*
+
+# Allow study notes (whitelist)
+!Ethereum/
+!.gitignore
+!README.md
