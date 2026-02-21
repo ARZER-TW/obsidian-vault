@@ -7,6 +7,8 @@ aliases: [以太坊知識地圖, Ethereum Map of Content]
 
 本筆記是整個 Ethereum 密碼學與協議知識庫的主索引。所有筆記按資料夾分組，依賴關係透過雙向連結追蹤。
 
+> 新手起點：[[Ethereum 全景概覽]] -- 從這裡開始，了解 Ethereum 全貌和六條學習路徑
+
 ---
 
 ## 密碼學基礎
@@ -72,21 +74,28 @@ aliases: [以太坊知識地圖, Ethereum Map of Content]
 
 | 筆記 | 說明 |
 |------|------|
-| [[區塊結構]] | 區塊的組成元素 |
-| [[區塊 Header]] | Header 各欄位定義 |
-| [[Ethash]] | PoW 時代挖礦演算法（歷史） |
+| [[共識入門]] | 為什麼需要共識、PoW vs PoS、CL+EL 架構 |
 | [[Beacon Chain]] | PoS 共識層 |
+| [[Slot 與 Epoch]] | 時間模型：12 秒 slot、32 slot epoch |
+| [[PoS 與質押入門]] | 質押經濟安全、32 ETH 門檻、Proposer vs Attester |
 | [[Validators]] | 驗證者角色與生命週期 |
-| [[Attestation]] | 驗證者投票機制 |
-| [[Casper FFG]] | Finality gadget |
-| [[LMD GHOST]] | Fork choice rule |
+| [[區塊結構]] | 區塊的組成元素（雙層架構） |
+| [[區塊 Header]] | Header 各欄位定義 |
 | [[RANDAO]] | 鏈上隨機數 |
+| [[Attestation]] | 驗證者投票機制 |
+| [[LMD GHOST]] | Fork choice rule |
+| [[Casper FFG]] | Finality gadget |
+| [[Gasper]] | Casper FFG + LMD GHOST 統一共識協議 |
 | [[Slashing]] | 懲罰機制 |
+| [[Ethash]] | PoW 時代挖礦演算法（歷史參考） |
 
 ## 進階主題
 
 | 筆記 | 說明 |
 |------|------|
+| [[Ethereum 擴展性路線圖]] | 統一敘事：L1 瓶頸與三大擴展方向 |
+| [[多項式承諾入門]] | 承諾的三步驟、KZG vs IPA 比較 |
+| [[橢圓曲線配對導論]] | Bilinear pairing 直覺與 BLS12-381 三群 |
 | [[EIP-4844 Proto-Danksharding]] | Blob 交易與資料可用性 |
 | [[KZG Commitments]] | 多項式承諾方案 |
 | [[Verkle Trees]] | 下一代狀態樹結構 |
@@ -134,10 +143,14 @@ aliases: [以太坊知識地圖, Ethereum Map of Content]
 
 ## 學習路徑建議
 
-**基礎路徑**：[[公鑰密碼學]] → [[橢圓曲線密碼學]] → [[secp256k1]] → [[ECDSA]] → [[密鑰生成與帳戶創建]] → [[交易生命週期]]
+**推薦起點**：先讀 [[Ethereum 全景概覽]]，再選擇以下路徑。
 
-**資料結構路徑**：[[RLP 編碼]] → [[Merkle Tree]] → [[Merkle Patricia Trie]] → [[State Trie]] → [[狀態轉換]]
+**交易流程（推薦第一條路徑）**：[[交易生命週期]] → [[密鑰生成與帳戶創建]] → [[交易構建]] → [[交易簽名]] → [[交易廣播與驗證]] → [[記憶池]] → [[區塊生產]] → [[共識與最終性]] → [[狀態轉換]]
 
-**共識路徑**：[[Beacon Chain]] → [[Validators]] → [[Casper FFG]] → [[LMD GHOST]] → [[共識與最終性]]
+**密碼學路徑**：[[雜湊函數概述]] → [[SHA-256]] → [[Keccak-256]] → [[橢圓曲線密碼學]] → [[secp256k1]] → [[數位簽章概述]] → [[ECDSA]] → [[ECRECOVER]] → [[BLS12-381]] → [[BLS Signatures]]
 
-**進階路徑**：[[EIP-4844 Proto-Danksharding]] → [[KZG Commitments]] → [[Verkle Trees]] → [[zkSNARKs 支援]]
+**資料結構路徑**：[[RLP 編碼]] → [[SSZ 編碼]] → [[Merkle Tree]] → [[Merkle Patricia Trie]] → [[State Trie]] → [[Storage Trie]] → [[Transaction Trie]] → [[Receipt Trie]] → [[Bloom Filter]]
+
+**共識路徑**：[[共識入門]] → [[Beacon Chain]] → [[Slot 與 Epoch]] → [[PoS 與質押入門]] → [[Validators]] → [[區塊結構]] → [[RANDAO]] → [[Attestation]] → [[LMD GHOST]] → [[Casper FFG]] → [[Gasper]] → [[Slashing]]
+
+**進階路徑**：[[Ethereum 擴展性路線圖]] → [[多項式承諾入門]] → [[橢圓曲線配對導論]] → [[EIP-4844 Proto-Danksharding]] → [[KZG Commitments]] → [[Verkle Trees]] → [[Precompiled Contracts]] → [[zkSNARKs 支援]]
