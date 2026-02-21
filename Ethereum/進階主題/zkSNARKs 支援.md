@@ -5,18 +5,23 @@ aliases: [zkSNARKs, zk-SNARKs, Zero Knowledge Proofs, 零知識證明]
 
 # zkSNARKs 支援
 
+## 什麼是零知識證明？
+
+想像這個情境：你要向某個網站證明你已滿 18 歲，但不想揭露你的生日或任何身份資訊。零知識證明讓這成為可能——你可以產生一份密碼學證明，證明「我持有的身份證上的出生日期在 18 年前」，驗證者可以確認這個陳述為真，但完全學不到你的生日是哪天。
+
+zkSNARK（Zero-Knowledge Succinct Non-interactive Argument of Knowledge）是目前最實用的零知識證明系統。它的三個關鍵特性：
+
+- **零知識**（Zero-Knowledge）：驗證者除了知道陳述為真，學不到任何額外資訊
+- **簡潔**（Succinct）：proof 大小是常數（Groth16 只有 192 bytes），驗證時間也是常數，與原始計算的複雜度無關
+- **非互動**（Non-interactive）：prover 只需傳送一份 proof，不需要和驗證者來回對話
+
+在 Ethereum 上，zkSNARK 最重要的應用是 ZK Rollup：L2 在鏈下執行數千筆交易，產生一份 proof 證明所有交易都正確執行，然後只需在 L1 上驗證這份 ~280,000 gas 的 proof，而不是重新執行全部交易（可能需要數十億 gas）。
+
 ## 概述
 
-zkSNARK（Zero-Knowledge Succinct Non-interactive Argument of Knowledge）是一種密碼學證明系統，允許 prover 在不揭露任何額外資訊的情況下，向 verifier 證明某個計算結果是正確的。Ethereum 透過 BN254 曲線的 [[Precompiled Contracts]]（ecAdd/ecMul/ecPairing）原生支援 Groth16 等 proof system 的鏈上驗證，為 ZK Rollup、隱私交易、身份證明等應用提供基礎設施。
+Ethereum 透過 BN254 曲線的 [[Precompiled Contracts]]（ecAdd/ecMul/ecPairing）原生支援 Groth16 等 proof system 的鏈上驗證，為 ZK Rollup、隱私交易、身份證明等應用提供基礎設施。
 
-## 核心原理
-
-### zk-SNARK 的特性
-
-- **Zero-Knowledge**：verifier 除了知道 statement 為真，學不到任何額外資訊
-- **Succinct**：proof 大小是常數（與計算複雜度無關），驗證時間也是常數
-- **Non-interactive**：只需要 prover 發送一個 proof，不需要多輪互動
-- **Argument of Knowledge**：prover 確實「知道」某個 witness，而非僅知道 statement 為真
+## 從計算到證明：完整推導
 
 ### 算術電路（Arithmetic Circuit）
 
@@ -27,25 +32,31 @@ zkSNARK（Zero-Knowledge Succinct Non-interactive Argument of Knowledge）是一
 - **Input wire**：public input（verifier 知道）和 private input（witness，只有 prover 知道）
 - **Output wire**：計算結果
 
-例如，證明「我知道 $x$ 使得 $x^3 + x + 5 = 35$」：
+例如，證明「我知道 $x$ 使得 $x^3 + x + 5 = 35$」（答案 $x = 3$，但 prover 不想揭露 $x$）：
 
 ```
-Gate 1: a = x * x       (x^2)
-Gate 2: b = a * x       (x^3)
-Gate 3: c = b + x       (x^3 + x)
-Gate 4: d = c + 5       (x^3 + x + 5)
-Assert: d == 35
+Wire assignment: x=3, w1=9, w2=27, w3=30, w4=35
+
+Gate 1 (乘法): w1 = x * x        => 9 = 3 * 3
+Gate 2 (乘法): w2 = w1 * x        => 27 = 9 * 3
+Gate 3 (加法): w3 = w2 + x        => 30 = 27 + 3
+Gate 4 (加法): w4 = w3 + 5        => 35 = 30 + 5
+Assert: w4 == 35 (public input)
 ```
 
 ### R1CS（Rank-1 Constraint System）
 
-算術電路轉化為 R1CS，每個乘法 gate 對應一個約束：
+電路中的每個乘法 gate 轉化為一個 R1CS 約束：
 
 $$\vec{a}_i \cdot \vec{s} \times \vec{b}_i \cdot \vec{s} = \vec{c}_i \cdot \vec{s}$$
 
-其中 $\vec{s} = [1, \text{out}, x, x^2, x^3, ...]$ 是 witness vector。
+其中 $\vec{s} = [1, x, w_1, w_2, w_3, w_4]$ 是完整的 witness vector。
 
-$\vec{a}_i, \vec{b}_i, \vec{c}_i$ 是由電路結構決定的係數向量。
+以 Gate 1（$w_1 = x \times x$）為例：
+- $\vec{a}_1 = [0, 1, 0, 0, 0, 0]$ -- 選擇 $x$
+- $\vec{b}_1 = [0, 1, 0, 0, 0, 0]$ -- 選擇 $x$
+- $\vec{c}_1 = [0, 0, 1, 0, 0, 0]$ -- 選擇 $w_1$
+- 驗證：$(0 \cdot 1 + 1 \cdot 3) \times (0 \cdot 1 + 1 \cdot 3) = 0 \cdot 1 + 0 \cdot 3 + 1 \cdot 9 = 9$
 
 整個 R1CS 可以寫成矩陣形式：
 

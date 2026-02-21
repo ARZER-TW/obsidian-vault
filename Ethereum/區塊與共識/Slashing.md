@@ -7,7 +7,11 @@ aliases: [Slashing, 罰沒, Slash]
 
 ## 概述
 
-Slashing 是 Ethereum PoS 對惡意 [[Validators]] 的經濟懲罰機制。兩種可被 slash 的行為：double voting（同一 slot 提議/投票兩個不同區塊）和 surround voting（投出包圍或被包圍的 attestation）。被 slash 的 validator 會損失至少 1/32 的有效餘額，並在約 36 天後強制退出。如果同時期有大量 validator 被 slash，額外的 correlation penalty 可能導致損失全部質押。
+共識機制要有效，「作弊必須付出代價」是底線。在 PoW 中，礦工作弊的代價是浪費電費和硬體折舊。在 PoS 中，代價更直接：你的質押金會被沒收。Slashing 就是這個懲罰機制，它確保 validator 有強烈的經濟動機保持誠實。
+
+什麼行為會觸發 slashing？兩種：double voting（在同一個 slot 對兩個不同區塊投票，試圖支持兩條鏈）和 surround voting（投出互相矛盾的 source-target 範圍，暗示在不同時間點支持了不同的鏈歷史）。一旦被發現，[[Validators|Validator]] 立即損失至少 1/32 的有效餘額，並在約 36 天後強制退出。更嚴重的是，如果同時期有大量 validator 被 slash，correlation penalty 會按比例放大，最極端情況下可能損失全部質押。
+
+本文將說明兩類 slashable 行為的精確定義、slashing 流程與懲罰計算、correlation penalty 的設計邏輯，以及 Pectra 升級後的變更。
 
 ## 核心原理
 

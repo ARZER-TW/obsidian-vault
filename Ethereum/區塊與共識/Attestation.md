@@ -7,7 +7,11 @@ aliases: [Attestation, 見證, 投票]
 
 ## 概述
 
-Attestation 是 [[Validators]] 在 [[Beacon Chain]] 上對區塊的投票行為。每個 attestation 包含三個投票：source（上一個 justified checkpoint）、target（當前 epoch 的 checkpoint）、head（鏈頭區塊）。前兩者驅動 [[Casper FFG]] 的 finality，後者驅動 [[LMD GHOST]] 的 fork choice。Attestation 透過 [[BLS Signatures]] 聚合壓縮，降低網路與儲存開銷。
+在分散式系統中，單一節點無法確認自己看到的資訊是否被全網認同。Attestation 就是解決這個問題的手段：每個 [[Validators|Validator]] 在被分配的 slot 對區塊投票，表達「我認為這個區塊有效、這條鏈是正確的」。當超過 2/3 的 validator 投出一致的票，網路就達成了共識。
+
+具體來說，每個 attestation 包含三個投票：head vote（我認為的鏈頭區塊）、source vote（上一個已確認的 checkpoint）、target vote（當前 epoch 的 checkpoint）。head vote 驅動 [[LMD GHOST]] 的分叉選擇，而 source 和 target vote 驅動 [[Casper FFG]] 的 finality 機制--為什麼要同時投 source 和 target？因為 FFG 需要一條從已確認 checkpoint 到新 checkpoint 的 supermajority link，兩者缺一不可。詳見 [[Casper FFG]]。
+
+本文將說明 attestation 的資料結構、投票時序、BLS 聚合機制，以及獎勵計算方式。
 
 ## 核心原理
 

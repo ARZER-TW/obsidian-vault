@@ -9,6 +9,8 @@ aliases: [Block Header, 區塊頭, BlockHeader]
 
 區塊 Header 是 Execution Layer 區塊的摘要資訊，包含父區塊 hash、狀態根、交易根、收據根等關鍵欄位。Header 的 [[Keccak-256]] hash 就是區塊的唯一識別碼。The Merge 後，Header 成為 [[區塊結構]] 中 Execution Payload 的核心組成部分。
 
+> 本文列出的欄位對應[[區塊結構]]中 Execution Payload 的欄位。兩者的差異在於：本文按 RLP 編碼順序排列，包含歷史遺留欄位（如 `difficulty`、`ommersHash`）；區塊結構則按 SSZ 容器的邏輯結構組織，更貼近共識層視角。
+
 ## 核心原理
 
 ### 完整欄位定義

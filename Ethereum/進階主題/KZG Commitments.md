@@ -5,9 +5,17 @@ aliases: [KZG Commitments, KZG, Kate Commitment, Polynomial Commitment]
 
 # KZG Commitments
 
+## 多項式承諾的直覺
+
+想像你有一份很長的資料（例如一個 blob 的 128KB）。你想對這份資料做出一個簡短的「承諾」——像是蓋了章的信封——讓別人之後可以驗證其中任何一小段內容，而不需要你揭露全部資料。
+
+KZG（Kate-Zaverucha-Goldberg）Commitment 正是這樣的工具。它的核心思路是：將資料編碼為一個多項式 $p(x)$，然後用橢圓曲線運算產生一個 48 bytes 的 commitment。之後任何人都可以要求你「打開」多項式在某個點 $z$ 的值 $p(z)$，你只需提供一個同樣 48 bytes 的 proof，驗證者就能確認這個值是正確的——而驗證的時間與資料大小無關，永遠只需要 2 次 pairing 運算。
+
+這使得 KZG 成為 Ethereum 擴展方案的基石：blob 驗證（EIP-4844）、資料可用性取樣（PeerDAS）、以及未來的 Verkle Trees 都依賴它。
+
 ## 概述
 
-KZG（Kate-Zaverucha-Goldberg）Commitment 是一種 polynomial commitment scheme，允許 prover 對多項式做出承諾，之後可以證明該多項式在任意點的 evaluation 值。Ethereum 在 [[EIP-4844 Proto-Danksharding]] 中用 KZG 來承諾 blob 資料，在 [[Verkle Trees]] 中用它取代 Merkle hash。KZG 基於 [[BLS12-381]] 橢圓曲線上的 bilinear pairing 運算。
+Ethereum 在 [[EIP-4844 Proto-Danksharding]] 中用 KZG 來承諾 blob 資料，在 [[Verkle Trees]] 中用它取代 Merkle hash。KZG 基於 [[BLS12-381]] 橢圓曲線上的 bilinear pairing 運算。
 
 ## 核心原理
 
@@ -124,18 +132,7 @@ $$C = \sum_{i=0}^{4095} f_i \cdot [L_i(\tau)]_1$$
 
 ### PeerDAS 中的 KZG（EIP-7594，Fusaka）
 
-Fusaka 升級（2025/12/3）引入的 PeerDAS 大量依賴 KZG 來實現資料可用性取樣（Data Availability Sampling）。
-
-**KZG 在 PeerDAS 中的角色：**
-
-1. **Blob 編碼**：每個 blob 仍然用 KZG commitment 承諾，和 EIP-4844 相同
-2. **Erasure coding 擴展**：blob 的多項式被 evaluate 在更多點上，產生額外的 data columns
-3. **Column commitment**：每個 column 對應原始多項式在特定點的 evaluation，可以用 KZG opening proof 驗證
-4. **取樣驗證**：節點隨機選擇若干 columns 下載，用 KZG proof 驗證每個 column 的值確實屬於 committed 的多項式
-
-**數學上**：如果 blob 多項式是 $p(x)$（degree < 4096），PeerDAS 將 $p(x)$ evaluate 在更多點 $\{z_0, z_1, ..., z_{m-1}\}$ 上，產生 $m$ 個 columns。節點只需驗證少數幾個 $(z_i, p(z_i))$ 的 KZG opening proof，就能確信完整資料是可用的（在足夠誠實節點參與取樣的前提下）。
-
-這個設計讓 blob 容量可以大幅提升（Fusaka 後透過 BPO 機制達到 target 14 / max 21），而不需要每個節點下載所有資料。
+PeerDAS（Fusaka，預計 2026）利用 KZG 的 opening proof 實現資料可用性取樣（DAS）：節點不需下載完整 blob，只需取樣部分 columns 並用 KZG proof 驗證即可確信資料可用。關於 PeerDAS 的完整機制（erasure coding、取樣流程、容量演進），請參見 [[EIP-4844 Proto-Danksharding#PeerDAS（EIP-7594）]]。
 
 ### 效能數據
 

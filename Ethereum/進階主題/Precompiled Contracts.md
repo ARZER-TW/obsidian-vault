@@ -5,9 +5,15 @@ aliases: [Precompiled Contracts, Precompile, 預編譯合約]
 
 # Precompiled Contracts
 
+## 為什麼需要 Precompile？
+
+EVM 是通用的虛擬機，但某些密碼學運算如果用 EVM bytecode 實作，成本極為高昂。以 SHA-256 為例：用 Solidity 在 EVM 中實作需要 100,000+ gas，但透過 precompile 只需 72 gas（對 64 bytes 輸入），差距超過 1000 倍。更極端的例子是 BN254 pairing 運算——在 EVM 中幾乎不可能實作，但 precompile 只需 79,000 gas（單對配對），使得 zkSNARK 鏈上驗證成為可能。
+
+Precompile 是部署在固定地址的特殊合約，底層用原生程式碼（C/C++/Assembly）實作，繞過 EVM 的逐 opcode 解釋開銷。合約呼叫 precompile 的方式和呼叫普通合約完全一樣——用 `CALL` 或 `STATICCALL`——但執行的是高度最佳化的原生實作。
+
 ## 概述
 
-Precompiled Contracts 是 EVM 中部署在固定地址的特殊合約，以原生程式碼實作高效的密碼學運算。它們的 gas cost 經過精確計算以反映實際計算量，避免在 EVM bytecode 中執行這些運算的高昂成本。截至 Fusaka 升級（2025/12），precompile 地址範圍擴展到 0x01-0x13，涵蓋 ecRecover（[[ECRECOVER]]）、SHA-256、bn128 配對運算（用於 [[zkSNARKs 支援]]）、blake2f、KZG point evaluation，以及 Pectra 新增的 [[BLS12-381]] 曲線操作。
+Precompiled Contracts 是 EVM 中部署在固定地址的特殊合約，以原生程式碼實作高效的密碼學運算。它們的 gas cost 經過精確計算以反映實際計算量，避免在 EVM bytecode 中執行這些運算的高昂成本。截至 Pectra 升級（2025 Q2，已上線），precompile 地址範圍擴展到 0x01-0x13，涵蓋 ecRecover（[[ECRECOVER]]）、SHA-256、bn128 配對運算（用於 [[zkSNARKs 支援]]）、blake2f、KZG point evaluation，以及 Pectra 新增的 [[BLS12-381]] 曲線操作。
 
 ## 核心原理
 
@@ -194,7 +200,7 @@ EIP-2537 在 Pectra 升級（2025/5/7）正式上線，新增 9 個 [[BLS12-381]
 
 ### 未來：secp256r1 簽名驗證（EIP-7951，Fusaka）
 
-EIP-7951 預計在 Fusaka 升級（2025/12/3）上線，新增 secp256r1（P-256 / NIST P-256）簽名驗證的 precompile。
+EIP-7951 預計在 Fusaka 升級（預計 2026，尚未上線）上線，新增 secp256r1（P-256 / NIST P-256）簽名驗證的 precompile。
 
 secp256r1 與 Ethereum 現有的 [[secp256k1]] 不同——它是 NIST 標準曲線，被廣泛用於：
 

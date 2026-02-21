@@ -5,9 +5,17 @@ aliases: [Verkle Trees, Verkle Trie, VKT]
 
 # Verkle Trees
 
+## 為什麼需要 Verkle Trees？
+
+Ethereum 的全局狀態（所有帳戶的 balance、nonce、合約 storage）目前超過 100GB，且持續增長。這帶來一個根本問題：運行全節點需要高效能 SSD 和大量記憶體，而且同步時間越來越長。更重要的是，每個區塊的驗證者都必須在本地擁有完整的狀態副本，才能確認交易結果是否正確。
+
+Stateless client 是解決方案：讓驗證者不需要存儲完整狀態，只需要區塊附帶的「見證資料」（witness）就能驗證狀態轉換。但在目前的 Merkle Patricia Trie 結構下，一筆交易的 witness（從葉到根的所有 sibling hash）可能達到數 KB，一個區塊的總 witness 可以達到數 MB，頻寬壓力巨大。
+
+Verkle Trees 透過 polynomial commitment 取代 hash-based commitment，將 proof 大小從 $O(k \log n)$ 壓縮到 $O(k)$。一個區塊的 witness 從數 MB 縮減到數百 KB，使得 stateless client 在實際頻寬限制下變得可行。
+
 ## 概述
 
-Verkle Trees 是 Ethereum 計劃用來取代 [[Merkle Patricia Trie]] 的新資料結構，名稱來自 Vector commitment + Merkle 的混成。核心改進是用 polynomial commitment（如 IPA 或 [[KZG Commitments]]）取代 hash-based commitment，使得 proof 大小從 $O(k \log n)$ 縮減到 $O(k)$（$k$ 是查詢的 key 數量），為 stateless client 鋪路。
+Verkle Trees（名稱來自 Vector commitment + Merkle）是 Ethereum 計劃用來取代 [[Merkle Patricia Trie]] 的新資料結構。核心改進是用 polynomial commitment（如 IPA 或 [[KZG Commitments]]）取代 hash-based commitment，使得 proof 大小從 $O(k \log n)$ 縮減到 $O(k)$（$k$ 是查詢的 key 數量），為 stateless client 鋪路。
 
 ## 核心原理
 
@@ -38,19 +46,24 @@ Verkle Tree 用 polynomial commitment 取代 hash：
 
 Verkle 的 proof 如此小是因為：polynomial commitment opening 的大小與多項式 degree 無關，每層只需一個 opening proof（~32-48 bytes），而不需要所有 sibling。
 
-### Pedersen IPA vs KZG
+### 為什麼選 IPA 而非 KZG？
 
-Ethereum 的 Verkle Tree 實作目前傾向使用 IPA（Inner Product Argument）而非 [[KZG Commitments]]：
+Verkle Tree 的每個節點需要一個 polynomial commitment，理論上 KZG 和 IPA 都能勝任。Ethereum 最終選擇 IPA（Inner Product Argument），以下是技術上的考量：
 
-| 特性 | IPA | KZG |
-|------|-----|-----|
-| Trusted setup | 不需要 | 需要 |
+| 特性 | IPA（Ethereum 選擇） | [[KZG Commitments|KZG]] |
+|------|---------------------|-----|
+| Trusted setup | **不需要** | 需要（KZG Ceremony） |
 | Proof 大小 | 稍大（~log n 的 group elements） | 固定 48 bytes |
 | 驗證時間 | 較慢（$O(n)$ multi-scalar multiplication） | 較快（2 pairings） |
 | 曲線 | Bandersnatch（嵌入 BLS12-381） | [[BLS12-381]] |
+| SNARK 內部驗證 | 高效（Bandersnatch 嵌入 BLS12-381） | 需 pairing（更昂貴） |
 | 量子安全 | 否（同 DLP） | 否（同 DLP） |
 
-選擇 IPA 的主要原因是避免 trusted setup 的額外信任假設，並利用 Bandersnatch 曲線的高效運算。
+選擇 IPA 的核心理由：
+
+1. **消除信任假設**：KZG 需要 trusted setup ceremony（2023 年的 ceremony 有 141,000 人參與）。雖然安全假設只需一個誠實參與者，但這仍然是一個額外的信任要求。IPA 完全不需要 trusted setup。
+2. **SNARK 友好**：Bandersnatch 曲線嵌入 BLS12-381 的標量域，使得 Verkle proof 可以高效地在 SNARK 電路中驗證——這對未來的 zkEVM 和遞迴 proof 非常重要。
+3. **Multi-proof 合併**：Verkle Tree 的一大優勢是多個 key 的 proof 可以合併為單一 proof，IPA 的 multi-opening 在此場景下表現良好。
 
 ### Bandersnatch 曲線
 
@@ -140,7 +153,7 @@ Verkle Trees 是 Stateless Ethereum roadmap 的核心：
 
 ### 時程
 
-Verkle Trees 目標在 **Hegota 升級（2026 H2）** 上線。Pectra（2025/5）和 Fusaka（2025/12）都未納入 Verkle，優先處理了 blob 擴容和其他改進。
+Verkle Trees 目標在 Fusaka 之後的升級上線（暫稱 Osaka/Amsterdam，時間待定）。Pectra（2025 Q2，已上線）和 Fusaka（預計 2026）都未納入 Verkle，優先處理了 blob 擴容和其他改進。Verkle 的 devnet 測試仍在進行中，正式上線時程取決於測試進度。
 
 目前狀態（截至 2026 初）：
 - 多個客戶端（Geth、Nethermind、Besu）正在積極實作 Verkle 支援

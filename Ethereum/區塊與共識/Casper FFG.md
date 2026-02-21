@@ -7,7 +7,11 @@ aliases: [Casper FFG, Casper, Friendly Finality Gadget]
 
 ## 概述
 
-Casper FFG（Friendly Finality Gadget）是 Ethereum PoS 的 finality 機制，由 Vitalik Buterin 和 Virgil Griffith 提出。它在 [[Beacon Chain]] 上運作，利用 [[Validators]] 的 [[Attestation]]（source/target vote）將 checkpoint 從 justified 推進到 finalized。Finalized 的區塊不可逆轉，除非攻擊者控制並願意銷毀超過 1/3 的總質押量。
+Casper FFG（Friendly Finality Gadget）回答一個關鍵問題：「哪些區塊已經確定不可逆轉？」在分散式網路中，新區塊隨時可能被替代（例如分叉），使用者需要知道交易何時「真正確認」。FFG 就是決定這條線的機制--一旦某個 checkpoint 被 finalized，除非攻擊者願意銷毀超過 1/3 的總質押量（目前約數百萬 ETH），否則無法推翻。
+
+當你在區塊瀏覽器上看到「Finalized」標籤，背後就是 FFG 在運作。每個 epoch（6.4 分鐘），[[Validators]] 透過 [[Attestation]] 中的 source/target vote 表態支持某個 checkpoint。當超過 2/3 的質押權重投票支持同一條 checkpoint 鏈，該 checkpoint 先被 justified，再被 finalized。正常情況下，finality 在 2 個 epoch（約 12.8 分鐘）內達成。
+
+本文將說明 checkpoint 的定義、supermajority link 的運作、justification 和 finalization 的條件，以及 accountable safety 的數學保證。
 
 ## 核心原理
 

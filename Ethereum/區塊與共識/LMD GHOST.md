@@ -7,7 +7,11 @@ aliases: [LMD GHOST, LMD-GHOST, Fork Choice Rule, GHOST]
 
 ## 概述
 
-LMD GHOST（Latest Message Driven Greedy Heaviest Observed SubTree）是 Ethereum PoS 的 fork choice rule，決定哪條鏈分支是 canonical head。它從最新的 [[Casper FFG]] justified checkpoint 出發，在每個分叉點選擇累積 [[Attestation]] weight 最大的子樹。LMD 的 "Latest Message" 指的是每個 validator 只計算其最新一次的 head vote。
+當 Ethereum 網路出現分叉（兩個 validator 同時提議了不同區塊），每個節點需要決定「跟哪條鏈走」。LMD GHOST 就是這個決策規則：它在每個分叉點選擇獲得最多 validator 支持的那條分支。名稱中的 GHOST（Greedy Heaviest Observed SubTree）源自 2013 年 Sompolinsky 和 Zohar 的論文，原本為 PoW 設計，選包含最多區塊的子樹；Ethereum 的 PoS 版本改為按 [[Attestation]] 的質押權重來計算。
+
+LMD（Latest Message Driven）的含義是：對每個 validator，只計算其最新一次的 head vote，忽略所有歷史投票。這個設計防止了 validator 透過累積舊投票來操控分叉選擇。演算法的起點是最新的 [[Casper FFG]] justified checkpoint，從這裡逐層向下，在每個分叉點選擇累積 weight 最大的子節點，直到找到鏈頭。
+
+本文將說明 GHOST 的基礎原理、LMD 的最新投票規則、fork choice 演算法的實作細節，以及 proposer boost 等安全強化措施。
 
 ## 核心原理
 

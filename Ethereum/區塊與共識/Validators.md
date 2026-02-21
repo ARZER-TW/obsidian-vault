@@ -7,7 +7,11 @@ aliases: [Validators, 驗證者, Validator]
 
 ## 概述
 
-Validator 是 Ethereum PoS 共識的核心參與者，負責提議區塊（propose）和投票（attest）。每個 validator 需質押 32 ETH，用 [[BLS Signatures]] 簽署操作。Validator 的生命週期包含排隊進入、活躍參與、自願退出或被 [[Slashing]] 強制退出。
+Validator（驗證者）是 Ethereum PoS 網路的安全基礎。在 PoW 時代，礦工用電力和硬體保護網路，作弊的代價是浪費算力。PoS 的做法不同：validator 用真金白銀做擔保--質押至少 32 ETH 才能參與共識。如果誠實工作，你賺取獎勵；如果作弊或離線，你的質押金會被扣除。這種「做壞事就賠錢」的機制，是整個 PoS 安全模型的根基。
+
+假設你質押了 32 ETH 成為 validator。每隔 6.4 分鐘（一個 epoch），[[Beacon Chain]] 會分配你到某個 slot 的 committee。在你被分配的 slot，你需要對當前的鏈頭區塊投票（[[Attestation]]）。偶爾你會被選為 proposer，負責打包新區塊。正確完成這些工作，你每年可獲得約 3-5% 的收益；持續離線則每個 epoch 扣除相當於一次正確 attestation 的獎勵（約 12,000 Gwei，依總質押量浮動）。
+
+本文將說明 validator 的資料結構、質押啟用流程、獎勵與懲罰機制、退出方式，以及 Pectra 升級帶來的重大變更。
 
 ## 核心原理
 

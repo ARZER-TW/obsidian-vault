@@ -5,6 +5,12 @@ aliases: [EIP-4844, Proto-Danksharding, Blob Transaction, Dencun]
 
 # EIP-4844 Proto-Danksharding
 
+## 為什麼需要 Blob？
+
+Layer 2 rollup 需要將交易資料發布到 L1 以確保資料可用性。在 EIP-4844 之前，唯一的選擇是 calldata，每 byte 收取 16 gas。一筆典型的 rollup batch（數百筆 L2 交易）壓縮後仍有數十 KB，光是 calldata 費用就可能花費 0.1-1 ETH。這意味著 L2 用戶的交易手續費有 80-95% 都是付給 L1 的資料發布成本，而非實際計算。
+
+EIP-4844 引入了 blob——一種專門為 L2 設計的暫態資料載體。Blob 使用獨立的 fee market，不與普通交易競爭 gas 空間，且資料在約 18 天後自動過期（L2 只需要短期的資料可用性保證，不需要永久儲存）。上線後，L2 的資料發布成本降低了 10-100 倍。
+
 ## 概述
 
 EIP-4844（Proto-Danksharding）在 2024 年 3 月的 Dencun 升級中上線，引入了一種新的交易類型——blob transaction。Blob 攜帶大量資料（每個最多 128KB），使用獨立的 fee market 定價，資料在約 18 天後自動過期。設計目標是大幅降低 Layer 2 rollup 的資料可用性成本，為未來的 Full Danksharding 鋪路。
@@ -142,9 +148,9 @@ EIP-4844 上線後，blob 容量透過後續升級和 BPO 機制持續擴容：
 |------|------|--------|-----|-----------------|
 | 2024/3 | Dencun（EIP-4844） | 3 | 6 | ~750 KB |
 | 2025/5 | Pectra（EIP-7691） | 6 | 9 | ~1.125 MB |
-| 2025/12 | Fusaka（EIP-7594 PeerDAS） | 6 | 9 | 同上（啟用 DAS） |
-| 2025/12/9 | BPO1 | 10 | 15 | ~1.875 MB |
-| 2026/1/7 | BPO2 | 14 | 21 | ~2.625 MB |
+| 預計 2026 | Fusaka（EIP-7594 PeerDAS） | 6 | 9 | 同上（啟用 DAS） |
+| Fusaka 後 | BPO1 | 10 | 15 | ~1.875 MB |
+| BPO1 後 | BPO2 | 14 | 21 | ~2.625 MB |
 
 從初始到 BPO2，blob target 成長 4.7 倍（3 -> 14），max 成長 3.5 倍（6 -> 21）。
 
@@ -156,7 +162,7 @@ EIP-4844 上線後，blob 容量透過後續升級和 BPO 機制持續擴容：
 
 ### PeerDAS（EIP-7594）
 
-Fusaka 升級（2025/12/3）引入 PeerDAS（Peer Data Availability Sampling），是走向 Full Danksharding 的關鍵步驟。
+Fusaka 升級（預計 2026，尚未上線）引入 PeerDAS（Peer Data Availability Sampling），是走向 Full Danksharding 的關鍵步驟。
 
 在 EIP-4844 時代，每個節點必須下載所有 blob 資料才能驗證資料可用性。PeerDAS 改變了這個要求：
 

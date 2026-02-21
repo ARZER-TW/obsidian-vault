@@ -7,7 +7,11 @@ aliases: [Beacon Chain, 信標鏈, CL]
 
 ## 概述
 
-Beacon Chain 是 Ethereum 的 Consensus Layer，2020 年 12 月上線，The Merge 後正式成為主鏈共識引擎。它管理 [[Validators]] 註冊表、slot/epoch 時間分配、[[Attestation]] 收集、[[RANDAO]] 隨機數產生，並透過 [[Casper FFG]] + [[LMD GHOST]] 達成共識與最終性。
+Beacon Chain 是 Ethereum 的共識引擎，負責回答一個核心問題：「下一個區塊由誰產生、內容是否合法？」它協調全球數十萬個 validator，讓沒有中央權威的網路也能就交易順序達成一致。
+
+在你的交易被打包進區塊後，Beacon Chain 決定這個區塊能不能被全網接受。它把時間切成 12 秒一個的 slot，每個 slot 指定一位 proposer 出塊，再由上百位 attester 投票確認。這套機制的設計在吞吐量和去中心化之間取得了平衡：12 秒的間隔足夠讓全球節點同步（實測 P2P 傳播約 2-4 秒），又不會讓用戶等待太久；每 epoch 32 個 slot（6.4 分鐘）則確保有足量的 validator 完成投票來達成 finality。
+
+本文涵蓋 Beacon Chain 的時間模型（slot/epoch）、proposer 選擇與 committee 分配、state transition 機制，以及與 Execution Layer 的互動方式。
 
 ## 核心原理
 
